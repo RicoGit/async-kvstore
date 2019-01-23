@@ -23,79 +23,20 @@ use std::marker::PhantomData;
 // todo use std::Futures instead futures::Future
 trait KVStore<K, V> {
     /// Gets stored value for specified key.
-    fn get(&self, key: &K) -> GetResult<V>;
+    fn get<'store>(
+        &'store self,
+        key: &K,
+    ) -> Box<Future<Item = Option<&'store V>, Error = StoreError> + 'store>;
 
     /// Puts key value pair (K, V).
     /// Update existing value if it's present.
-    fn put(&mut self, key: K, value: V) -> PutResult;
+    fn put(&mut self, key: K, value: V) -> Box<Future<Item = (), Error = StoreError>>;
 
     /// Removes pair (K, V) for specified key.
-    fn remove(&mut self, key: &K) -> RemoveResult;
+    fn remove(&mut self, key: &K) -> Box<Future<Item = (), Error = StoreError>>;
 
     /// Release all resources acquired for the storage.
-    fn close() -> CloseResult;
-}
-
-//
-// Get operation
-//
-
-struct GetResult<'a, V> {
-    value: Option<&'a V>,
-}
-
-impl<'a, V> Future for GetResult<'a, V> {
-    type Item = Option<&'a V>;
-    type Error = StoreError;
-
-    fn poll(&mut self) -> Result<Async<<Self as Future>::Item>, <Self as Future>::Error> {
-        Ok(Async::Ready(self.value))
-    }
-}
-
-//
-// Put operation
-//
-
-struct PutResult {}
-
-impl Future for PutResult {
-    type Item = ();
-    type Error = StoreError;
-
-    fn poll(&mut self) -> Result<Async<<Self as Future>::Item>, <Self as Future>::Error> {
-        Ok(Async::Ready(()))
-    }
-}
-
-//
-// Remove operation
-//
-
-struct RemoveResult {}
-
-impl Future for RemoveResult {
-    type Item = ();
-    type Error = StoreError;
-
-    fn poll(&mut self) -> Result<Async<<Self as Future>::Item>, <Self as Future>::Error> {
-        Ok(Async::Ready(()))
-    }
-}
-
-//
-// Close operation
-//
-
-struct CloseResult {}
-
-impl Future for CloseResult {
-    type Item = ();
-    type Error = StoreError;
-
-    fn poll(&mut self) -> Result<Async<<Self as Future>::Item>, <Self as Future>::Error> {
-        Ok(Async::Ready(()))
-    }
+    fn close(self) -> Box<Future<Item = (), Error = StoreError>>;
 }
 
 //

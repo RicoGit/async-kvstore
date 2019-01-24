@@ -21,7 +21,7 @@ use std::marker::PhantomData;
 
 // todo add traverse
 // todo use std::Futures instead futures::Future
-trait KVStore<K, V> {
+pub trait KVStore<K, V> {
     /// Gets stored value for specified key.
     fn get<'store>(
         &'store self,
@@ -38,13 +38,15 @@ trait KVStore<K, V> {
     fn close(self) -> Box<Future<Item = (), Error = StoreError>>;
 }
 
+// todo implement iterators
+
 //
 // Errors
 //
 
 // todo consider to switch to error-chain when it'll be hurts
 #[derive(Debug, PartialOrd, PartialEq)]
-struct StoreError {
+pub struct StoreError {
     msg: String,
 }
 

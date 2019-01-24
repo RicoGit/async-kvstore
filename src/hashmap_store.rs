@@ -6,7 +6,7 @@ use futures::Future;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-struct HashMapStore<K: Hash + Eq, V> {
+pub struct HashMapStore<K: Hash + Eq, V> {
     data: HashMap<K, V>,
 }
 
@@ -19,7 +19,6 @@ impl<K: Hash + Eq, V> HashMapStore<K, V> {
 }
 
 impl<K: Hash + Eq, V> KVStore<K, V> for HashMapStore<K, V> {
-
     fn get<'store>(
         &'store self,
         key: &K,
@@ -40,7 +39,6 @@ impl<K: Hash + Eq, V> KVStore<K, V> for HashMapStore<K, V> {
     fn close(self) -> Box<Future<Item = (), Error = StoreError>> {
         Box::new(futures::finished(()))
     }
-
 }
 
 #[cfg(test)]

@@ -4,7 +4,7 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-mod hashmap_store;
+pub mod hashmap_store;
 
 #[macro_use]
 extern crate error_chain;
@@ -28,8 +28,7 @@ trait KVStore<K, V> {
         key: &K,
     ) -> Box<Future<Item = Option<&'store V>, Error = StoreError> + 'store>;
 
-    /// Puts key value pair (K, V).
-    /// Update existing value if it's present.
+    /// Puts key value pair (K, V). Update existing value if it's present.
     fn put(&mut self, key: K, value: V) -> Box<Future<Item = (), Error = StoreError>>;
 
     /// Removes pair (K, V) for specified key.

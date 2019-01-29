@@ -1,11 +1,14 @@
 //! In-memory implementation
 
+use crate::errors::*;
+use crate::GetFuture;
 use crate::KVStore;
-use crate::StoreError;
+use crate::StoreFuture;
 use futures::Future;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+#[derive(Default, Debug)]
 pub struct HashMapStore<K: Hash + Eq, V> {
     data: HashMap<K, V>,
 }
@@ -19,24 +22,21 @@ impl<K: Hash + Eq, V> HashMapStore<K, V> {
 }
 
 impl<K: Hash + Eq, V> KVStore<K, V> for HashMapStore<K, V> {
-    fn get<'store>(
-        &'store self,
-        key: &K,
-    ) -> Box<Future<Item = Option<&'store V>, Error = StoreError> + 'store> {
+    fn get(&self, key: &K) -> GetFuture<V> {
         Box::new(futures::finished(self.data.get(key)))
     }
 
-    fn put(&mut self, key: K, value: V) -> Box<Future<Item = (), Error = StoreError>> {
+    fn put(&mut self, key: K, value: V) -> StoreFuture<()> {
         self.data.insert(key, value);
         Box::new(futures::finished(()))
     }
 
-    fn remove(&mut self, key: &K) -> Box<Future<Item = (), Error = StoreError>> {
+    fn remove(&mut self, key: &K) -> StoreFuture<()> {
         self.data.remove(key);
         Box::new(futures::finished(()))
     }
 
-    fn close(self) -> Box<Future<Item = (), Error = StoreError>> {
+    fn close(self) -> StoreFuture<()> {
         Box::new(futures::finished(()))
     }
 }
@@ -51,47 +51,47 @@ mod tests {
     fn get_from_empty_store() {
         let store = HashMapStore::<&str, i32>::new();
         let result = store.get(&"key");
-        assert_eq!(Ok(None), result.wait());
+        assert_eq!(None, result.wait().unwrap());
     }
 
     #[test]
     fn put_into_empty_store() {
         let mut store = HashMapStore::<&str, i32>::new();
-        assert_eq!(Ok(()), store.put(&"key", 32).wait());
-        assert_eq!(Ok(Some(&32)), store.get(&"key").wait());
+        assert_eq!((), store.put(&"key", 32).wait().unwrap());
+        assert_eq!(Some(&32), store.get(&"key").wait().unwrap());
     }
 
     #[test]
     fn remove_from_empty_store() {
         let mut store = HashMapStore::<&str, i32>::new();
-        assert_eq!(Ok(()), store.remove(&"key").wait());
-        assert_eq!(Ok(None), store.get(&"key").wait());
+        assert_eq!((), store.remove(&"key").wait().unwrap());
+        assert_eq!(None, store.get(&"key").wait().unwrap());
     }
 
     #[test]
     fn close_empty_store() {
         let store = HashMapStore::<&str, i32>::new();
-        assert_eq!(Ok(()), store.close().wait());
+        assert_eq!((), store.close().wait().unwrap());
     }
 
     #[test]
     fn functional_test() {
         let mut store = HashMapStore::<&str, i32>::new();
-        assert_eq!(Ok(None), store.get(&"k1").wait());
-        assert_eq!(Ok(()), store.put("k1", 10).wait());
-        assert_eq!(Ok(Some(&10)), store.get(&"k1").wait());
-        assert_eq!(Ok(()), store.put("k1", 10).wait());
-        assert_eq!(Ok(Some(&10)), store.get(&"k1").wait());
-        assert_eq!(Ok(()), store.put("k1", 11).wait());
-        assert_eq!(Ok(Some(&11)), store.get(&"k1").wait());
-        assert_eq!(Ok(()), store.remove(&"k1").wait());
-        assert_eq!(Ok(None), store.get(&"k1").wait());
+        assert_eq!(None, store.get(&"k1").wait().unwrap());
+        assert_eq!((), store.put("k1", 10).wait().unwrap());
+        assert_eq!(Some(&10), store.get(&"k1").wait().unwrap());
+        assert_eq!((), store.put("k1", 10).wait().unwrap());
+        assert_eq!(Some(&10), store.get(&"k1").wait().unwrap());
+        assert_eq!((), store.put("k1", 11).wait().unwrap());
+        assert_eq!(Some(&11), store.get(&"k1").wait().unwrap());
+        assert_eq!((), store.remove(&"k1").wait().unwrap());
+        assert_eq!(None, store.get(&"k1").wait().unwrap());
 
-        assert_eq!(Ok(()), store.put("k2", 20).wait());
-        assert_eq!(Ok(()), store.put("k3", 30).wait());
-        assert_eq!(Ok(()), store.put("k4", 40).wait());
-        assert_eq!(Ok(()), store.remove(&"k2").wait());
-        assert_eq!(Ok(Some(&30)), store.get(&"k3").wait());
+        assert_eq!((), store.put("k2", 20).wait().unwrap());
+        assert_eq!((), store.put("k3", 30).wait().unwrap());
+        assert_eq!((), store.put("k4", 40).wait().unwrap());
+        assert_eq!((), store.remove(&"k2").wait().unwrap());
+        assert_eq!(Some(&30), store.get(&"k3").wait().unwrap());
     }
 
     // todo more tests

@@ -12,48 +12,46 @@ extern crate error_chain;
 use futures::Async;
 use futures::Future;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fmt;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::hash::Hash;
 use std::marker::PhantomData;
 
-// todo add traverse
+use crate::errors::*;
+
 // todo use std::Futures instead futures::Future
+
+type GetFuture<'store, V> = Box<Future<Item = Option<&'store V>, Error = errors::Error> + 'store>;
+
+type StoreFuture<V> = Box<Future<Item = V, Error = errors::Error>>;
+
+/// Key-value storage api interface.
 pub trait KVStore<K, V> {
     /// Gets stored value for specified key.
-    fn get<'store>(
-        &'store self,
-        key: &K,
-    ) -> Box<Future<Item = Option<&'store V>, Error = StoreError> + 'store>;
+    fn get(&self, key: &K) -> GetFuture<V>;
 
     /// Puts key value pair (K, V). Update existing value if it's present.
-    fn put(&mut self, key: K, value: V) -> Box<Future<Item = (), Error = StoreError>>;
+    fn put(&mut self, key: K, value: V) -> StoreFuture<()>;
 
     /// Removes pair (K, V) for specified key.
-    fn remove(&mut self, key: &K) -> Box<Future<Item = (), Error = StoreError>>;
+    fn remove(&mut self, key: &K) -> StoreFuture<()>;
 
     /// Release all resources acquired for the storage.
-    fn close(self) -> Box<Future<Item = (), Error = StoreError>>;
+    fn close(self) -> StoreFuture<()>;
 }
 
 // todo implement iterators
 
 //
-// Errors
+// Errors definition
 //
-
-// todo consider to switch to error-chain when it'll be hurts
-#[derive(Debug, PartialOrd, PartialEq)]
-pub struct StoreError {
-    msg: String,
-}
-
-impl Error for StoreError {}
-
-impl Display for StoreError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "StoreError({})", self.msg)
+mod errors {
+    error_chain! {
+        errors {
+             StoreError(msg: String) {
+                 display("Store Error: {:?}", msg)
+             }
+         }
     }
 }

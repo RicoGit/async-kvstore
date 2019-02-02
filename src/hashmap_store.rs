@@ -3,6 +3,9 @@
 use crate::errors::*;
 use crate::GetFuture;
 use crate::KVStore;
+use crate::KVStoreGet;
+use crate::KVStorePut;
+use crate::KVStoreRemove;
 use crate::StoreFuture;
 use futures::Future;
 use std::collections::HashMap;
@@ -21,30 +24,32 @@ impl<K: Hash + Eq, V> HashMapStore<K, V> {
     }
 }
 
-impl<K: Hash + Eq, V> KVStore<K, V> for HashMapStore<K, V> {
+impl<K: Hash + Eq, V> KVStoreGet<K, V> for HashMapStore<K, V> {
     fn get(&self, key: &K) -> GetFuture<V> {
         Box::new(futures::finished(self.data.get(key)))
     }
+}
 
+impl<K: Hash + Eq, V> KVStorePut<K, V> for HashMapStore<K, V> {
     fn put(&mut self, key: K, value: V) -> StoreFuture<()> {
         self.data.insert(key, value);
         Box::new(futures::finished(()))
     }
+}
 
+impl<K: Hash + Eq, V> KVStoreRemove<K> for HashMapStore<K, V> {
     fn remove(&mut self, key: &K) -> StoreFuture<()> {
         self.data.remove(key);
         Box::new(futures::finished(()))
     }
-
-    fn close(self) -> StoreFuture<()> {
-        Box::new(futures::finished(()))
-    }
 }
+
+impl<K: Hash + Eq, V> KVStore<K, V> for HashMapStore<K, V> {}
 
 #[cfg(test)]
 mod tests {
     use crate::hashmap_store::HashMapStore;
-    use crate::KVStore;
+    use crate::*;
     use futures::prelude::*;
 
     #[test]
@@ -66,12 +71,6 @@ mod tests {
         let mut store = HashMapStore::<&str, i32>::new();
         assert_eq!((), store.remove(&"key").wait().unwrap());
         assert_eq!(None, store.get(&"key").wait().unwrap());
-    }
-
-    #[test]
-    fn close_empty_store() {
-        let store = HashMapStore::<&str, i32>::new();
-        assert_eq!((), store.close().wait().unwrap());
     }
 
     #[test]

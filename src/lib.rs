@@ -20,7 +20,8 @@ use std::marker::PhantomData;
 
 use crate::errors::*;
 
-pub type GetFuture<'store, V> = Box<Future<Item = Option<&'store V>, Error = errors::Error> + Send + 'store>;
+pub type GetFuture<'store, V> =
+    Box<Future<Item = Option<&'store V>, Error = errors::Error> + Send + 'store>;
 
 pub type StoreFuture<V> = Box<Future<Item = V, Error = errors::Error> + Send>;
 

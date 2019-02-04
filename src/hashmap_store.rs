@@ -32,7 +32,7 @@ impl<K: Hash + Eq, V: Sync> KVStoreGet<K, V> for HashMapStore<K, V> {
 
 impl<K: Hash + Eq, V: Sync> KVStorePut<K, V> for HashMapStore<K, V> {
     fn put(&mut self, key: K, value: V) -> StoreFuture<()> {
-        self.data.insert(key, value);  // todo laziness???
+        self.data.insert(key, value); // todo laziness???
         Box::new(futures::finished(()))
     }
 }

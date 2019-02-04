@@ -20,14 +20,14 @@ use std::marker::PhantomData;
 
 use crate::errors::*;
 
-type GetFuture<'store, V> = Box<Future<Item = Option<&'store V>, Error = errors::Error> + 'store>;
+pub type GetFuture<'store, V> = Box<Future<Item = Option<&'store V>, Error = errors::Error> + Send + 'store>;
 
-type StoreFuture<V> = Box<Future<Item = V, Error = errors::Error>>;
+pub type StoreFuture<V> = Box<Future<Item = V, Error = errors::Error> + Send>;
 
 /// Key-value storage api interface.
-pub trait KVStore<K, V>: KVStoreGet<K, V> + KVStorePut<K, V> + KVStoreRemove<K> {}
+pub trait KVStore<K, V: Sync>: KVStoreGet<K, V> + KVStorePut<K, V> + KVStoreRemove<K> {}
 
-pub trait KVStoreGet<K, V> {
+pub trait KVStoreGet<K, V: Sync> {
     /// Gets stored value for specified key.
     fn get(&self, key: &K) -> GetFuture<V>;
 }
@@ -45,7 +45,7 @@ pub trait KVStoreRemove<K> {
 //
 // Errors definition
 //
-mod errors {
+pub mod errors {
     error_chain! {
         errors {
              StoreError(msg: String) {

@@ -12,11 +12,11 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 #[derive(Default, Debug)]
-pub struct HashMapStore<K: Hash + Eq, V> {
+pub struct HashMapStore<K: Hash + Eq, V: Sync> {
     data: HashMap<K, V>,
 }
 
-impl<K: Hash + Eq, V> HashMapStore<K, V> {
+impl<K: Hash + Eq, V: Sync> HashMapStore<K, V> {
     pub fn new() -> Self {
         HashMapStore {
             data: HashMap::new(),
@@ -24,27 +24,27 @@ impl<K: Hash + Eq, V> HashMapStore<K, V> {
     }
 }
 
-impl<K: Hash + Eq, V> KVStoreGet<K, V> for HashMapStore<K, V> {
+impl<K: Hash + Eq, V: Sync> KVStoreGet<K, V> for HashMapStore<K, V> {
     fn get(&self, key: &K) -> GetFuture<V> {
         Box::new(futures::finished(self.data.get(key)))
     }
 }
 
-impl<K: Hash + Eq, V> KVStorePut<K, V> for HashMapStore<K, V> {
+impl<K: Hash + Eq, V: Sync> KVStorePut<K, V> for HashMapStore<K, V> {
     fn put(&mut self, key: K, value: V) -> StoreFuture<()> {
-        self.data.insert(key, value);
+        self.data.insert(key, value);  // todo laziness???
         Box::new(futures::finished(()))
     }
 }
 
-impl<K: Hash + Eq, V> KVStoreRemove<K> for HashMapStore<K, V> {
+impl<K: Hash + Eq, V: Sync> KVStoreRemove<K> for HashMapStore<K, V> {
     fn remove(&mut self, key: &K) -> StoreFuture<()> {
         self.data.remove(key);
         Box::new(futures::finished(()))
     }
 }
 
-impl<K: Hash + Eq, V> KVStore<K, V> for HashMapStore<K, V> {}
+impl<K: Hash + Eq, V: Sync> KVStore<K, V> for HashMapStore<K, V> {}
 
 #[cfg(test)]
 mod tests {

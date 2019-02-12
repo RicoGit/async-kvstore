@@ -66,8 +66,8 @@ where
 
 impl<K, V> KVStore<K, V> for HashMapStore<K, V>
 where
-    K: Hash + Eq + Send,
-    V: Sync + Send,
+    K: Hash + Eq + Send + Sync,
+    V: Send + Sync,
 {
 }
 
@@ -80,17 +80,8 @@ mod tests {
     use std::sync::Arc;
 
     #[test]
-    fn sync_dyn_test() {
-        let store: Arc<dyn KVStore<i32, String> + Sync> = Arc::new(HashMapStore::new());
-        fn take<T: Send + ?Sized>(_it: Arc<T>) {
-            ()
-        };
-        take(store);
-    }
-
-    #[test]
     fn send_test() {
-        let _store: Box<Send> = Box::new(HashMapStore::<i32, String>::new());
+        let _store: Box<Send + Sync> = Box::new(HashMapStore::<i32, String>::new());
     }
 
     #[test]

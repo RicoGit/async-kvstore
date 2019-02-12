@@ -26,9 +26,10 @@ pub type GetFuture<'store, V> =
 pub type StoreFuture<V> = Box<Future<Item = V, Error = errors::Error> + Send>;
 
 /// Key-value storage api interface.
-pub trait KVStore<K, V>: KVStoreGet<K, V> + KVStorePut<K, V> + KVStoreRemove<K> + Send
+pub trait KVStore<K, V>:
+    KVStoreGet<K, V> + KVStorePut<K, V> + KVStoreRemove<K> + Send + Sync
 where
-    K: Send,
+    K: Send + Sync,
     V: Send + Sync,
 {
 }

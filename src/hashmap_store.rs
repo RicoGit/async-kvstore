@@ -12,11 +12,19 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 #[derive(Default, Debug)]
-pub struct HashMapStore<K: Hash + Eq, V: Sync> {
+pub struct HashMapStore<K, V>
+where
+    K: Hash + Eq + Send,
+    V: Sync + Send,
+{
     data: HashMap<K, V>,
 }
 
-impl<K: Hash + Eq, V: Sync> HashMapStore<K, V> {
+impl<K, V> HashMapStore<K, V>
+where
+    K: Hash + Eq + Send,
+    V: Sync + Send,
+{
     pub fn new() -> Self {
         HashMapStore {
             data: HashMap::new(),
@@ -24,33 +32,66 @@ impl<K: Hash + Eq, V: Sync> HashMapStore<K, V> {
     }
 }
 
-impl<K: Hash + Eq, V: Sync> KVStoreGet<K, V> for HashMapStore<K, V> {
+impl<K, V> KVStoreGet<K, V> for HashMapStore<K, V>
+where
+    K: Hash + Eq + Send,
+    V: Sync + Send,
+{
     fn get(&self, key: &K) -> GetFuture<V> {
         Box::new(futures::finished(self.data.get(key)))
     }
 }
 
-impl<K: Hash + Eq, V: Sync> KVStorePut<K, V> for HashMapStore<K, V> {
+impl<K, V> KVStorePut<K, V> for HashMapStore<K, V>
+where
+    K: Hash + Eq + Send,
+    V: Sync + Send,
+{
     fn put(&mut self, key: K, value: V) -> StoreFuture<()> {
         self.data.insert(key, value); // todo laziness???
         Box::new(futures::finished(()))
     }
 }
 
-impl<K: Hash + Eq, V: Sync> KVStoreRemove<K> for HashMapStore<K, V> {
+impl<K, V> KVStoreRemove<K> for HashMapStore<K, V>
+where
+    K: Hash + Eq + Send,
+    V: Sync + Send,
+{
     fn remove(&mut self, key: &K) -> StoreFuture<()> {
         self.data.remove(key);
         Box::new(futures::finished(()))
     }
 }
 
-impl<K: Hash + Eq, V: Sync> KVStore<K, V> for HashMapStore<K, V> {}
+impl<K, V> KVStore<K, V> for HashMapStore<K, V>
+where
+    K: Hash + Eq + Send,
+    V: Sync + Send,
+{
+}
 
 #[cfg(test)]
 mod tests {
     use crate::hashmap_store::HashMapStore;
     use crate::*;
     use futures::prelude::*;
+    use std::rc::Rc;
+    use std::sync::Arc;
+
+    #[test]
+    fn sync_dyn_test() {
+        let store: Arc<dyn KVStore<i32, String> + Sync> = Arc::new(HashMapStore::new());
+        fn take<T: Send + ?Sized>(_it: Arc<T>) {
+            ()
+        };
+        take(store);
+    }
+
+    #[test]
+    fn send_test() {
+        let _store: Box<Send> = Box::new(HashMapStore::<i32, String>::new());
+    }
 
     #[test]
     fn get_from_empty_store() {

@@ -1,6 +1,6 @@
 [package]
 name = "async-kvstore"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Constantine Solovev <constantine.solovev@gmail.com>"]
 edition = "2018"
 

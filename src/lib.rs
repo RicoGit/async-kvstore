@@ -20,8 +20,7 @@ use std::marker::PhantomData;
 
 use crate::errors::*;
 
-pub type GetFuture<'store, V> =
-    Box<Future<Item = Option<&'store V>, Error = errors::Error> + Send + 'store>;
+pub type GetFuture<'f, V> = Box<Future<Item = Option<V>, Error = errors::Error> + Send + 'f>;
 
 pub type StoreFuture<V> = Box<Future<Item = V, Error = errors::Error> + Send>;
 
@@ -40,7 +39,7 @@ where
     V: Send + Sync,
 {
     /// Gets stored value for specified key.
-    fn get(&self, key: &K) -> GetFuture<V>;
+    fn get<'f: 's, 's>(&'s self, key: &K) -> GetFuture<'f, V>;
 }
 
 pub trait KVStorePut<K, V>

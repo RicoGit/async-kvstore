@@ -9,3 +9,7 @@ edition = "2018"
 error-chain = "0.12"
 tokio = "0.1"
 futures = "0.1"
+
+[dev-dependencies]
+
+futures-locks = "0.3"

@@ -35,10 +35,11 @@ where
 impl<K, V> KVStoreGet<K, V> for HashMapStore<K, V>
 where
     K: Hash + Eq + Send,
-    V: Sync + Send,
+    V: Sync + Send + Clone + 'static,
 {
-    fn get(&self, key: &K) -> GetFuture<V> {
-        Box::new(futures::finished(self.data.get(key)))
+    fn get<'a: 's, 's>(&'s self, key: &K) -> GetFuture<'a, V> {
+        let result: Option<V> = self.data.get(key).cloned();
+        Box::new(futures::finished(result))
     }
 }
 
@@ -67,7 +68,7 @@ where
 impl<K, V> KVStore<K, V> for HashMapStore<K, V>
 where
     K: Hash + Eq + Send + Sync,
-    V: Send + Sync,
+    V: Send + Sync + Clone + 'static,
 {
 }
 
@@ -76,6 +77,7 @@ mod tests {
     use crate::hashmap_store::HashMapStore;
     use crate::*;
     use futures::prelude::*;
+    use futures_locks::RwLock;
     use std::rc::Rc;
     use std::sync::Arc;
 
@@ -95,7 +97,7 @@ mod tests {
     fn put_into_empty_store() {
         let mut store = HashMapStore::<&str, i32>::new();
         assert_eq!((), store.put(&"key", 32).wait().unwrap());
-        assert_eq!(Some(&32), store.get(&"key").wait().unwrap());
+        assert_eq!(Some(32), store.get(&"key").wait().unwrap());
     }
 
     #[test]
@@ -107,14 +109,14 @@ mod tests {
 
     #[test]
     fn functional_test() {
-        let mut store = HashMapStore::<&str, i32>::new();
+        let mut store: Box<KVStore<&str, i32>> = Box::new(HashMapStore::<&str, i32>::new());
         assert_eq!(None, store.get(&"k1").wait().unwrap());
         assert_eq!((), store.put("k1", 10).wait().unwrap());
-        assert_eq!(Some(&10), store.get(&"k1").wait().unwrap());
+        assert_eq!(Some(10), store.get(&"k1").wait().unwrap());
         assert_eq!((), store.put("k1", 10).wait().unwrap());
-        assert_eq!(Some(&10), store.get(&"k1").wait().unwrap());
+        assert_eq!(Some(10), store.get(&"k1").wait().unwrap());
         assert_eq!((), store.put("k1", 11).wait().unwrap());
-        assert_eq!(Some(&11), store.get(&"k1").wait().unwrap());
+        assert_eq!(Some(11), store.get(&"k1").wait().unwrap());
         assert_eq!((), store.remove(&"k1").wait().unwrap());
         assert_eq!(None, store.get(&"k1").wait().unwrap());
 
@@ -122,7 +124,33 @@ mod tests {
         assert_eq!((), store.put("k3", 30).wait().unwrap());
         assert_eq!((), store.put("k4", 40).wait().unwrap());
         assert_eq!((), store.remove(&"k2").wait().unwrap());
-        assert_eq!(Some(&30), store.get(&"k3").wait().unwrap());
+        assert_eq!(Some(30), store.get(&"k3").wait().unwrap());
+    }
+
+    #[test]
+    fn rwlock_test() {
+        // checks compatibility with futures_locks::RwLock
+        let store: RwLock<Box<dyn KVStore<usize, String>>> =
+            RwLock::new(Box::new(HashMapStore::new()));
+
+        let empty_get = store
+            .read()
+            .map_err(|_| "Can't get read access".into())
+            .and_then(|kv| kv.get(&1));
+
+        let put = store
+            .write()
+            .map_err(|_| "Can't get read access".into())
+            .and_then(|mut kv| kv.put(1, "first".into()));
+
+        let get = store
+            .read()
+            .map_err(|_| "Can't get read access".into())
+            .and_then(|kv| kv.get(&1));
+
+        assert_eq!(None, empty_get.wait().unwrap());
+        assert_eq!((), put.wait().unwrap());
+        assert_eq!(Some("first".into()), get.wait().unwrap());
     }
 
     // todo more tests

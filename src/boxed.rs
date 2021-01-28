@@ -1,11 +1,11 @@
 /// Traits for AsyncKVStore with boxed futures ans basic in-memory implementation.
 use std::collections::HashMap;
-use std::future::Future;
+
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 
 use futures::future::BoxFuture;
-use futures::{FutureExt, TryFutureExt};
+use futures::FutureExt;
 
 //
 // API
@@ -83,8 +83,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures::FutureExt;
-    use std::ops::Deref;
 
     #[tokio::test]
     async fn set_and_get() {

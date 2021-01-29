@@ -1,4 +1,7 @@
 /// Traits for AsyncKVStore with boxed futures ans basic in-memory implementation.
+
+#![allow(dead_code)]
+
 use std::collections::HashMap;
 
 use std::hash::Hash;

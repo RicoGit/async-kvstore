@@ -1,4 +1,4 @@
-/// Traits for AsyncKVStore with boxed futures ans basic in-memory implementation.
+//! Traits for AsyncKVStore with boxed futures ans basic in-memory implementation.
 
 #![allow(dead_code)]
 
@@ -14,14 +14,14 @@ use futures::FutureExt;
 // API
 //
 
-type IO<V> = BoxFuture<'static, V>;
+type Task<V> = BoxFuture<'static, V>;
 
 pub trait KVGet<K: Send, V: Send> {
-    fn get(&self, key: K) -> IO<Option<V>>;
+    fn get(&self, key: K) -> Task<Option<V>>;
 }
 
 pub trait KVSet<K: Send, V: Send> {
-    fn set(&mut self, key: K, val: V) -> IO<Option<V>>;
+    fn set(&mut self, key: K, val: V) -> Task<Option<V>>;
 }
 
 //
@@ -31,16 +31,14 @@ pub trait KVSet<K: Send, V: Send> {
 #[derive(Default, Debug)]
 pub struct HashMapKVStorage<K, V>
 where
-    K: Hash + Eq + Send,
-    V: Send,
+    K: Hash + Eq,
 {
     data: Arc<RwLock<HashMap<K, V>>>,
 }
 
 impl<K, V> HashMapKVStorage<K, V>
 where
-    K: Hash + Eq + Send,
-    V: Send,
+    K: Hash + Eq,
 {
     pub fn new() -> Self {
         HashMapKVStorage {
@@ -54,7 +52,7 @@ where
     K: Hash + Eq + Send + 'static,
     V: Send + Clone + 'static,
 {
-    fn get(&self, key: K) -> IO<Option<V>> {
+    fn get(&self, key: K) -> Task<Option<V>> {
         let res = self
             .data
             .clone()
@@ -71,7 +69,7 @@ where
     K: Hash + Eq + Send + 'static,
     V: Send + Clone + 'static,
 {
-    fn set(&mut self, key: K, val: V) -> IO<Option<V>> {
+    fn set(&mut self, key: K, val: V) -> Task<Option<V>> {
         let res = self
             .data
             .clone()

@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use tokio::sync::RwLock;
 
 //
-// Traits
+// API
 //
 
 #[async_trait]
@@ -29,31 +29,28 @@ pub trait KVSet<K: Send + Sync, V: Send + Sync> {
 
 #[derive(Default, Debug)]
 pub struct HashMapKVStore<K, V>
-    where
-        K: Hash + Eq + Send + Sync,
-        V: Send + Sync,
+where
+    K: Hash + Eq,
 {
     data: Arc<RwLock<HashMap<K, V>>>,
 }
 
 impl<K, V> HashMapKVStore<K, V>
-    where
-        K: Hash + Eq + Send + Sync,
-        V: Send + Sync,
+where
+    K: Hash + Eq,
 {
     pub fn new() -> Self {
         HashMapKVStore {
             data: Arc::new(RwLock::new(HashMap::new())),
         }
     }
-
 }
 
 #[async_trait]
 impl<K, V> KVGet<K, V> for HashMapKVStore<K, V>
-    where
-        K: Hash + Eq + Send + Sync,
-        V: Send + Clone + Sync,
+where
+    K: Hash + Eq + Send + Sync,
+    V: Clone + Send + Sync,
 {
     async fn get(&self, key: K) -> Option<V> {
         let map = self.data.clone();
@@ -65,9 +62,9 @@ impl<K, V> KVGet<K, V> for HashMapKVStore<K, V>
 
 #[async_trait]
 impl<K, V> KVSet<K, V> for HashMapKVStore<K, V>
-    where
-        K: Hash + Eq + Send + Sync,
-        V: Send + Clone + Sync,
+where
+    K: Hash + Eq + Send + Sync,
+    V: Clone + Send + Sync,
 {
     async fn set(&mut self, key: K, val: V) -> Option<V> {
         let map = self.data.clone();

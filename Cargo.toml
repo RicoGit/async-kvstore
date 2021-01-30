@@ -2,6 +2,6 @@
 
 members = [
     "api",
-#    "inmemory",
+    "inmemory",
     "rocksdb",
 ]

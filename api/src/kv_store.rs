@@ -3,7 +3,7 @@
 use std::future::Future;
 use std::pin::Pin;
 
-type Task<'a, Val> = Pin<Box<dyn Future<Output = Val> + Send + 'a>>;
+pub type Task<'a, Val> = Pin<Box<dyn Future<Output = Val> + Send + 'a>>;
 
 /// Aggregated trait for KVStore
 pub trait KVStore<K: Send, V: Send>: GetOp<K, V> + SetOp<K, V> {}

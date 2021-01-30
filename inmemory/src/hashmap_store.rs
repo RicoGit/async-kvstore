@@ -4,7 +4,7 @@
 //!
 //! ```
 //! use kvstore_inmemory::hashmap_store::HashMapKVStore;
-//! use kvstore_api::kv_store::*;
+//! use kvstore_api::kvstore::*;
 //!
 //! #[tokio::main]
 //! async fn main() {
@@ -17,7 +17,7 @@
 //!
 //! ```
 
-use kvstore_api::kv_store::*;
+use kvstore_api::kvstore::*;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};

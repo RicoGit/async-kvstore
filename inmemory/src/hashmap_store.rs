@@ -22,7 +22,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct HashMapKVStore<K, V>
 where
     K: Hash + Eq,

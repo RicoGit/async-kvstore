@@ -5,3 +5,6 @@ authors = ["Constantine Solovev <constantine.solovev@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+
+
+thiserror = "1.0"

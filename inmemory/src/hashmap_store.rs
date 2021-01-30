@@ -3,11 +3,12 @@
 //! # Examples
 //!
 //! ```
-//! use inmemory::hashmap_store::HashMapKVStore;
-//! use api::kv_store::*;
+//! use kvstore_inmemory::hashmap_store::HashMapKVStore;
+//! use kvstore_api::kv_store::*;
 //!
 //! #[tokio::main]
 //! async fn main() {
+//!     use kvstore_inmemory::hashmap_store::HashMapKVStore;
 //!     let mut store = HashMapKVStore::new();
 //!     store.set(1, "test").await;
 //!     let res = store.get(1).await;
@@ -16,7 +17,7 @@
 //!
 //! ```
 
-use api::kv_store::*;
+use kvstore_api::kv_store::*;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};

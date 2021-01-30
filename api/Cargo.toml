@@ -1,5 +1,5 @@
 [package]
-name = "api"
+name = "kvstore-api"
 version = "0.1.0"
 authors = ["Constantine Solovev <constantine.solovev@gmail.com>"]
 edition = "2018"

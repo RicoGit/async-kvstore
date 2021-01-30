@@ -1,12 +1,12 @@
 [package]
-name = "inmemory"
+name = "kvstore-inmemory"
 version = "0.1.0"
 authors = ["Constantine Solovev <constantine.solovev@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 
-api = { path = "../api" }
+kvstore-api = { path = "../api" }
 
 thiserror = "1.0"
 

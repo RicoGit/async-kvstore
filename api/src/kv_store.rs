@@ -2,9 +2,8 @@
 
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::{Arc, RwLock};
 
-type Task<'a, Val> = Pin<Box<dyn Future<Output=Val> + Send + 'a>>;
+type Task<'a, Val> = Pin<Box<dyn Future<Output = Val> + Send + 'a>>;
 
 /// Aggregated trait for KVStore
 pub trait KVStore<K: Send, V: Send>: GetOp<K, V> + SetOp<K, V> {}
@@ -23,7 +22,9 @@ pub trait SetOp<K: Send, V: Send> {
 
 /// Auto-derives KVStore for each T that satisfied all requirements.
 impl<T, K, V> KVStore<K, V> for T
-    where
-        K: Send,
-        V: Send,
-        T: GetOp<K, V> + SetOp<K, V> {}
+where
+    K: Send,
+    V: Send,
+    T: GetOp<K, V> + SetOp<K, V>,
+{
+}

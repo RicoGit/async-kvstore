@@ -10,10 +10,12 @@ pub trait KVStore<K: Send, V: Send>: GetOp<K, V> + SetOp<K, V> {}
 #[derive(Error, Debug)]
 #[error("KVStore Error: {msg:?}")]
 pub struct KVStoreError {
-    msg: String,
+    pub msg: String,
 }
 
-pub type StoreTask<'a, Val> = Pin<Box<dyn Future<Output = Result<Val, KVStoreError>> + Send + 'a>>;
+pub type StoreResult<V> = std::result::Result<V, KVStoreError>;
+
+pub type StoreTask<'a, Val> = Pin<Box<dyn Future<Output = StoreResult<Val>> + Send + 'a>>;
 
 /// Get value by key
 pub trait GetOp<K: Send, V: Send> {
@@ -28,10 +30,10 @@ pub trait SetOp<K: Send, V: Send> {
 // todo add remove, travers (is possible)
 
 /// Auto-derives KVStore for each T that satisfied all requirements.
-impl<T, K, V> KVStore<K, V> for T
+impl<K, V, Ops> KVStore<K, V> for Ops
 where
     K: Send,
     V: Send,
-    T: GetOp<K, V> + SetOp<K, V>,
+    Ops: GetOp<K, V> + SetOp<K, V>,
 {
 }

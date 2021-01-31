@@ -22,7 +22,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::sync::{Arc, RwLock};
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct HashMapKVStore<K, V>
 where
     K: Hash + Eq,
@@ -81,18 +81,18 @@ mod tests {
 
     #[tokio::test]
     async fn set_and_get() {
-        let mut storage = HashMapKVStore::new();
+        let mut store = HashMapKVStore::new();
 
-        assert_eq!(storage.get("test").await.unwrap(), None);
-        assert_eq!(storage.set("test", 32).await.unwrap(), None);
-        assert_eq!(storage.get("test").await.unwrap(), Some(32));
+        assert_eq!(store.get("test").await.unwrap(), None);
+        assert_eq!(store.set("test", 32).await.unwrap(), None);
+        assert_eq!(store.get("test").await.unwrap(), Some(32));
 
-        assert_eq!(dbg!(storage.set("test", 42).await.unwrap()), Some(32));
-        assert_eq!(storage.get("test").await.unwrap(), Some(42));
+        assert_eq!(dbg!(store.set("test", 42).await.unwrap()), Some(32));
+        assert_eq!(store.get("test").await.unwrap(), Some(42));
 
-        assert_eq!(storage.get("test2").await.unwrap(), None);
-        assert_eq!(storage.set("test2", 2).await.unwrap(), None);
-        assert_eq!(storage.set("test3", 3).await.unwrap(), None);
-        assert_eq!(storage.get("test2").await.unwrap(), Some(2));
+        assert_eq!(store.get("test2").await.unwrap(), None);
+        assert_eq!(store.set("test2", 2).await.unwrap(), None);
+        assert_eq!(store.set("test3", 3).await.unwrap(), None);
+        assert_eq!(store.get("test2").await.unwrap(), Some(2));
     }
 }

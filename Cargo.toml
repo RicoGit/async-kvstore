@@ -2,6 +2,7 @@
 
 members = [
     "api",
+    "binary",
     "inmemory",
     "rocksdb",
 ]
